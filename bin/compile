@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# bin/compile <build-dir> <cache-dir> <env-dir>
+set -euo pipefail
+
+# debug
+# set -x
+
+# clean up leaking environment
+unset GIT_DIR
+
+# parse and derive params
+BUILD_DIR=$1
+CACHE_DIR=$2
+BUILDPACK_DIR="$(dirname "$(dirname "$0")")"
+
+TS_VERSION=1.36.1
+TS_TARGETARCH=amd64
+
+# Add bin to PATH
+PATH="$BUILD_DIR/bin:$PATH"
+
+mkdir -p "$BUILD_DIR/bin"
+
+echo "-----> tailscale-buildpack: Fetching tailscale"
+apk add --no-cache iptables iproute2 ca-certificates bash \
+  && apk add --no-cache --virtual=.install-deps curl tar \
+  && curl -sL "https://pkgs.tailscale.com/stable/tailscale_${TS_VERSION}_${TS_TARGETARCH}.tgz" \
+  | tar -zxf - -C "${BUILD_DIR}/bin" --strip=1 tailscale_${TS_VERSION}_${TS_TARGETARCH}/tailscaled tailscale_${TS_VERSION}_${TS_TARGETARCH}/tailscale \
+  && apk del .install-deps
+chmod +x "$BUILD_DIR/bin/tailscale"
+chmod +x "$BUILD_DIR/bin/tailscaled"
+
+echo "-----> tailscale-buildpack: Starting tailscale"
+
+tailscaled -verbose ${TAILSCALED_VERBOSE:-0} --tun=userspace-networking --socks5-server=localhost:1055 &
+until tailscale up \
+  --authkey=${TAILSCALE_AUTH_KEY} \
+  --hostname=${TAILSCALE_HOSTNAME:-$(hostname)} \
+  --accept-dns=${TAILSCALE_ACCEPT_DNS:-true} \
+  --accept-routes=${TAILSCALE_ACCEPT_ROUTES:-true} \
+  --advertise-exit-node=${TAILSCALE_ADVERTISE_EXIT_NODE:-false} \
+  --advertise-tags=${TAILSCALE_ADVERTISE_TAGS} \
+  --shields-up=${TAILSCALE_SHIELDS_UP:-false}
+do
+    echo "-----> tailscale-buildpack: waiting for 30s"
+    sleep 30
+done
+
+export ALL_PROXY=socks5://localhost:1055/
+
+echo "-----> tailscale-buildpack: done"

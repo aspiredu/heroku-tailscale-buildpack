@@ -22,11 +22,8 @@ PATH="$BUILD_DIR/bin:$PATH"
 mkdir -p "$BUILD_DIR/bin"
 
 echo "-----> tailscale-buildpack: Fetching tailscale"
-apk add --no-cache iptables iproute2 ca-certificates bash \
-  && apk add --no-cache --virtual=.install-deps curl tar \
-  && curl -sL "https://pkgs.tailscale.com/stable/tailscale_${TS_VERSION}_${TS_TARGETARCH}.tgz" \
-  | tar -zxf - -C "${BUILD_DIR}/bin" --strip=1 tailscale_${TS_VERSION}_${TS_TARGETARCH}/tailscaled tailscale_${TS_VERSION}_${TS_TARGETARCH}/tailscale \
-  && apk del .install-deps
+curl -sL "https://pkgs.tailscale.com/stable/tailscale_${TS_VERSION}_${TS_TARGETARCH}.tgz" \
+  | tar -zxf - -C "${BUILD_DIR}/bin" --strip=1 tailscale_${TS_VERSION}_${TS_TARGETARCH}/tailscaled tailscale_${TS_VERSION}_${TS_TARGETARCH}/tailscale
 chmod +x "$BUILD_DIR/bin/tailscale"
 chmod +x "$BUILD_DIR/bin/tailscaled"
 

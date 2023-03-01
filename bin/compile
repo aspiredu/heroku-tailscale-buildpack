@@ -26,59 +26,17 @@ BUILDPACK_DIR="$(dirname "$(dirname "$0")")"
 TS_VERSION=1.36.1
 TS_TARGETARCH=amd64
 
-# Fetch app config values from their files.
-if [[ -f "$ENV_DIR/TAILSCALE_AUTH_KEY" ]]; then
-  TAILSCALE_AUTH_KEY=$(cat "$ENV_DIR/TAILSCALE_AUTH_KEY")
-  echo "TAILSCALE_AUTH_KEY=${TAILSCALE_AUTH_KEY}"
-fi
-if [[ -f "$ENV_DIR/TAILSCALE_HOSTNAME" ]]; then
-  TAILSCALE_HOSTNAME=$(cat "$ENV_DIR/TAILSCALE_HOSTNAME")
-  echo "TAILSCALE_HOSTNAME=${TAILSCALE_HOSTNAME}"
-fi
-if [[ -f "$ENV_DIR/TAILSCALE_ACCEPT_DNS" ]]; then
-  TAILSCALE_ACCEPT_DNS=$(cat "$ENV_DIR/TAILSCALE_ACCEPT_DNS")
-  echo "TAILSCALE_ACCEPT_DNS=${TAILSCALE_ACCEPT_DNS}"
-fi
-if [[ -f "$ENV_DIR/TAILSCALE_ADVERTISE_EXIT_NODE" ]]; then
-  TAILSCALE_ADVERTISE_EXIT_NODE=$(cat "$ENV_DIR/TAILSCALE_ADVERTISE_EXIT_NODE")
-  echo "TAILSCALE_ADVERTISE_EXIT_NODE=${TAILSCALE_ADVERTISE_EXIT_NODE}"
-fi
-if [[ -f "$ENV_DIR/TAILSCALE_ADVERTISE_TAGS" ]]; then
-  TAILSCALE_ADVERTISE_TAGS=$(cat "$ENV_DIR/TAILSCALE_ADVERTISE_TAGS")
-  echo "TAILSCALE_ADVERTISE_TAGS=${TAILSCALE_ADVERTISE_TAGS}"
-fi
-if [[ -f "$ENV_DIR/TAILSCALE_SHIELDS_UP" ]]; then
-  TAILSCALE_SHIELDS_UP=$(cat "$ENV_DIR/TAILSCALE_SHIELDS_UP")
-  echo "TAILSCALE_SHIELDS_UP=${TAILSCALE_SHIELDS_UP}"
-fi
 
 # Add bin to PATH
-PATH="$BUILD_DIR/bin:$PATH"
+PATH="$BUILD_DIR/bin/tailscale:$PATH"
 
-mkdir -p "$BUILD_DIR/bin"
+mkdir -p "$BUILD_DIR/bin/tailscale"
 
 echo "-----> tailscale-buildpack: Fetching tailscale"
 curl -sL "https://pkgs.tailscale.com/stable/tailscale_${TS_VERSION}_${TS_TARGETARCH}.tgz" \
-  | tar -zxf - -C "${BUILD_DIR}/bin" --strip=1 tailscale_${TS_VERSION}_${TS_TARGETARCH}/tailscaled tailscale_${TS_VERSION}_${TS_TARGETARCH}/tailscale
-chmod +x "$BUILD_DIR/bin/tailscale"
-chmod +x "$BUILD_DIR/bin/tailscaled"
-
-echo "-----> tailscale-buildpack: Starting tailscale"
-
-tailscaled -verbose ${TAILSCALED_VERBOSE:-0} --tun=userspace-networking --socks5-server=localhost:1055 &
-until tailscale up \
-  --authkey=${TAILSCALE_AUTH_KEY} \
-  --hostname=${TAILSCALE_HOSTNAME:-$(hostname)} \
-  --accept-dns=${TAILSCALE_ACCEPT_DNS:-true} \
-  --accept-routes=${TAILSCALE_ACCEPT_ROUTES:-true} \
-  --advertise-exit-node=${TAILSCALE_ADVERTISE_EXIT_NODE:-false} \
-  --advertise-tags=${TAILSCALE_ADVERTISE_TAGS} \
-  --shields-up=${TAILSCALE_SHIELDS_UP:-false}
-do
-    echo "-----> tailscale-buildpack: waiting for 30s"
-    sleep 30
-done
-
-export ALL_PROXY=socks5://localhost:1055/
+  | tar -zxf - -C "${BUILD_DIR}/bin/tailscale" --strip=1 tailscale_${TS_VERSION}_${TS_TARGETARCH}/tailscaled tailscale_${TS_VERSION}_${TS_TARGETARCH}/tailscale
+chmod +x "$BUILD_DIR/bin/tailscale/tailscale"
+chmod +x "$BUILD_DIR/bin/tailscale/tailscaled"
+cp "$BUILDPACK_DIR/bin/heroku-tailscale-start.sh" "$BUILD_DIR/.profile.d/heroku-tailscale-start.sh"
 
 echo "-----> tailscale-buildpack: done"

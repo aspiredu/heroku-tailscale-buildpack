@@ -15,8 +15,9 @@ until tailscale up \
   --shields-up=${TAILSCALE_SHIELDS_UP:-false}
 do
     echo "-----> tailscale-buildpack: waiting for 5s for tailscale to start"
-    sleep 5
+    sleep 2
 done
 
 export ALL_PROXY=socks5://localhost:1055/
 echo "-----> tailscale-buildpack: tailscale started"
+

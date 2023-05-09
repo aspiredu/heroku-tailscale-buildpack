@@ -29,6 +29,7 @@ TS_TARGETARCH=amd64
 
 # Add bin to PATH
 PATH="$BUILD_DIR/bin/tailscale:$PATH"
+export PATH
 
 mkdir -p "$BUILD_DIR/bin/tailscale"
 

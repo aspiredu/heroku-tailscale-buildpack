@@ -21,7 +21,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: run smoke tests
-      run: run_tests.sh
+      run: bash run_tests.sh
   test-stack:
     strategy:
       matrix:

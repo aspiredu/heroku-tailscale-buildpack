@@ -1,6 +1,13 @@
 # Heroku buildpack to use Tailscale on Heroku
 
-Run [Tailscale](https://tailscale.com/) on a Heroku dyno.
+Run [Tailscale](https://tailscale.com/) on a Heroku dyno, shoving connections through proxychains.
+
+## Why is proxychains necessary?
+
+It really shouldn't be. However, I discovered that in my project to use Django and PostgreSQL,
+pyscopg did not respect the ``ALL_PROXY`` environment variable. In order to get the network
+communication to go through the Tailscale SOCKS5 proxy, I needed to manually force it. Enter
+proxychains-ng.
 
 This is based on https://tailscale.com/kb/1107/heroku/.
 
@@ -8,7 +15,8 @@ Thank you to @rdotts, @kongmadai, @mvisonneau for their work on tailscale-docker
 
 ## Usage
 
-Example usage:
+To set up your Heroku application, add the buildpack and ``TAILSCALE_AUTH_KEY``
+environment variable:
 
     $ heroku buildpacks:add https://github.com/aspiredu/heroku-tailscale-buildpack
     Buildpack added. Next release on test-app will use aspiredu/heroku-tailscale-buildpack.
@@ -17,6 +25,16 @@ Example usage:
     $ heroku config:set TAILSCALE_AUTH_KEY="..."
     $ git push heroku main
     ...
+
+To have your processes connect through the Tailscale proxy, you need to update your
+``Procfile``. Here's an example for a Django project with a Celery worker:
+
+```
+web: proxychains4 -f vendor/proxychains-ng/conf/proxychains.conf uvicorn --host 0.0.0.0 --port "$PORT" myproject.project.asgi:application
+worker: proxychains4 -f vendor/proxychains-ng/conf/proxychains.conf celery -A myproject.project worker
+```
+
+## Testing the integration
 
 To test a connection, you can add the ``hello.ts.net`` machine into your network.
 [Follow the instructions here](https://tailscale.com/kb/1073/hello/?q=testing). You

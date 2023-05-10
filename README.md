@@ -105,3 +105,10 @@ you will need to create a Tailscale token that can connect to ``hello.ts.net``. 
 source .env  # where TAILSCALE_TEST_AUTH_KEY should exist.
 test/stack-test.sh heroku-22
 ```
+
+### CI TailScale auth koken
+
+Eventually the GitHub ``TAILSCALE_TEST_AUTH_KEY`` will expire (every 90 days).
+When that happens a new token will need to be generated. It should be reusable,
+ephemeral and have the ``tag:test`` tag applied to it. It will need to be copied
+to the ``TAILSCALE_TEST_AUTH_KEY`` repository secret for this repo.

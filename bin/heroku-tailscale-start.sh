@@ -2,7 +2,15 @@
 
 set -e
 
-echo "-----> tailscale-buildpack: Starting tailscale"
+function log() {
+  echo "-----> $*"
+}
+
+function indent() {
+  sed -e 's/^/       /'
+}
+
+log "Starting Tailscale"
 
 tailscaled -verbose ${TAILSCALED_VERBOSE:-0} --tun=userspace-networking --socks5-server=localhost:1055 &
 until tailscale up \
@@ -13,9 +21,9 @@ until tailscale up \
   --advertise-exit-node=${TAILSCALE_ADVERTISE_EXIT_NODE:-false} \
   --shields-up=${TAILSCALE_SHIELDS_UP:-false}
 do
-    echo "-----> tailscale-buildpack: waiting for 5s for tailscale to start"
-    sleep 5
+  log "Waiting for 5s for Tailscale to start"
+  sleep 5
 done
 
 export ALL_PROXY=socks5://localhost:1055/
-echo "-----> tailscale-buildpack: tailscale started"
+log "Tailscale started"

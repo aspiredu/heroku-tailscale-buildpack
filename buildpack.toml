@@ -1,8 +1,0 @@
-api = "0.8"
-
-[buildpack]
-  id = "heroku-tailscale"
-  version = "0.0.1"
-
-[[stacks]]
-  id = "heroku-22"

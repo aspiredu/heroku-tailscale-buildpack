@@ -3,3 +3,4 @@
   https://github.com/moneymeets/python-poetry-buildpack,
   https://github.com/heroku/heroku-buildpack-pgbouncer and
   tailscale-docker and tailscale-heroku.
+* Move the process to start tailscale into the .profile.d/ script.

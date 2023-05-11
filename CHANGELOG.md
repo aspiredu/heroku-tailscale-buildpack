@@ -1,4 +1,8 @@
 ## Unreleased
+
+
+## 1.0.0 (2023-05-11)
+
 * Implement buildpack sourcing ideas from
   https://github.com/moneymeets/python-poetry-buildpack,
   https://github.com/heroku/heroku-buildpack-pgbouncer and

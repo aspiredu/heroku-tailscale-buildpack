@@ -79,7 +79,9 @@ curl -sL "https://pkgs.tailscale.com/stable/tailscale_${TAILSCALE_BUILD_TS_VERSI
 chmod +x "$BUILD_DIR/vendor/tailscale/tailscale"
 chmod +x "$BUILD_DIR/vendor/tailscale/tailscaled"
 cp "$BUILDPACK_DIR/bin/heroku-tailscale-start.sh" "$BUILD_DIR/vendor/tailscale/heroku-tailscale-start.sh"
+cp "$BUILDPACK_DIR/bin/heroku-tailscale-test.sh" "$BUILD_DIR/vendor/tailscale/heroku-tailscale-test.sh"
 chmod +x "$BUILD_DIR/vendor/tailscale/heroku-tailscale-start.sh"
+chmod +x "$BUILD_DIR/vendor/tailscale/heroku-tailscale-test.sh"
 
 mkdir -p $BUILD_DIR/.profile.d 2>&1 | indent
 rm -f $BUILD_DIR/.profile.d/heroku-tailscale-buildpack.sh 2>&1 | indent

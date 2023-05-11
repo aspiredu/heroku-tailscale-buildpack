@@ -22,10 +22,8 @@ docker build \
   -t "$OUTPUT_IMAGE" \
   .
 
-LOAD_ENV_VARS="source .profile.d/heroku-tailscale-buildpack.sh && sleep 10"
-PROXYCHAINS_WRAPPER="proxychains4 -f /app/vendor/proxychains-ng/conf/proxychains.conf"
-TEST_TAILNET_CONNECTION="curl --connect-timeout 5 hello.ts.net"
-TEST_COMMAND="$LOAD_ENV_VARS && $PROXYCHAINS_WRAPPER $TEST_TAILNET_CONNECTION"
+LOAD_ENV_VARS="source .profile.d/heroku-tailscale-buildpack.sh"
+TEST_COMMAND="$LOAD_ENV_VARS && heroku-tailscale-test.sh"
 
 docker run \
     --rm \

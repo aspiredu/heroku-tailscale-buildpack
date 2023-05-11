@@ -1,11 +1,1 @@
------> Starting Tailscale
->>> mocked tailscaled -verbose 0 call <<<
->>> mocked tailscale call
---authkey=
---hostname=test
---accept-dns=true
---accept-routes=true
---advertise-exit-node=false
---shields-up=false
-<<<
------> Tailscale started
+-----> Skipping Tailscale

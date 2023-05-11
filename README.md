@@ -135,17 +135,17 @@ heroku buildpacks:add https://github.com/aspiredu/heroku-tailscale-buildpack
 ```
 
 5. (Optional) Test your integration.
-  1. Add the [Tailscale test machine in your tailnet](https://tailscale.com/kb/1073/hello/?q=test)
-  2. Create a test tag that can only access the hello.ts.net machine via your ACLs
-  3. Create a reusable ephemeral auth token that has the test tag applied to it.
-  4. Temporarily change your application to use the test auth key.
-  5. Trigger a build. This should include this buildpack.
-  6. Run a one-off dyno to confirm that the setup is correct.
+    1. Add the [Tailscale test machine in your tailnet](https://tailscale.com/kb/1073/hello/?q=test)
+    2. Create a test tag that can only access the hello.ts.net machine via your ACLs
+    3. Create a reusable ephemeral auth token that has the test tag applied to it.
+    4. Temporarily change your application to use the test auth key.
+    5. Trigger a build. This should include this buildpack.
+    6. Run a one-off dyno to confirm that the setup is correct.
 
-     ```shell
-     heroku run heroku-tailscale-start.sh
-     ```
-  7. Restore the previous version of Tailscale auth key.
+    ```shell
+    heroku run heroku-tailscale-start.sh
+    ```
+    7. Restore the previous version of Tailscale auth key.
 
 6. Modify your application to try to use the Tailscale database/resource and fallback to
    the non-tailnet version. If you're using python, the following script may help:

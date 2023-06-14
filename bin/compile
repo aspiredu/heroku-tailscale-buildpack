@@ -53,7 +53,7 @@ else
 fi
 
 if [ -z "${TAILSCALE_BUILD_TS_VERSION:-}" ] ; then
-  export TAILSCALE_BUILD_TS_VERSION=1.40.0
+  export TAILSCALE_BUILD_TS_VERSION=1.42.0
   log "No Tailscale version specified in TAILSCALE_BUILD_TS_VERSION config var. Defaulting to $TAILSCALE_BUILD_TS_VERSION."
 else
   log "Using Tailscale version from TAILSCALE_BUILD_TS_VERSION config var: $TAILSCALE_BUILD_TS_VERSION"

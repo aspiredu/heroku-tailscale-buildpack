@@ -1,5 +1,8 @@
 ## Unreleased
 
+## 1.0.1 (2023-06-13)
+
+* Updated default tailscale version from 1.40.0 to 1.42.0
 
 ## 1.0.0 (2023-05-11)
 

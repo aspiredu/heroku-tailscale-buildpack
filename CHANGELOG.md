@@ -1,5 +1,10 @@
 ## Unreleased
 
+## 1.0.1 (2023-06-15)
+
+* Added ``TAILSCALE_BUILD_EXCLUDE_START_SCRIPT_FROM_PROFILE_D`` build environment variable
+  to control when the tailscale script starts.
+
 ## 1.0.1 (2023-06-13)
 
 * Updated default tailscale version from 1.40.0 to 1.42.0

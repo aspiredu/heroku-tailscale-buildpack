@@ -91,7 +91,15 @@ cause a rebuild. These are all optional and will default to the latest values.
 
 - ``TAILSCALE_BUILD_TS_VERSION`` - The target version Tailscale package.
 - ``TAILSCALE_BUILD_TS_TARGETARCH`` - The target architecture for the Tailscale package.
+- ``TAILSCALE_BUILD_EXCLUDE_START_SCRIPT_FROM_PROFILE_D`` - Excludes the start script from the
+  [buildpack's ``.profile.d/`` folder](https://devcenter.heroku.com/articles/buildpack-api#profile-d-scripts).
+  If you set this to true, you must call ``vendor/tailscale/heroku-tailscale-start.sh``. This likely should go
+  into your ``.profile`` script ([see Heroku docs](https://devcenter.heroku.com/articles/dynos#the-profile-file)).
+  Starting the script in your ``.profile`` file would allow you to better control environment
+  variables in respect to the executables. For example, a specific dyno could change
+  ``TAILSCALE_HOSTNAME`` before tailscale starts.
 - ``TAILSCALE_BUILD_PROXYCHAINS_REPO`` - The repository to install the proxychains-ng library from.
+
 
 ### Customizing proxychains.conf
 

@@ -1,5 +1,8 @@
 ## Unreleased
 
+* Updated the default TAILSCALE_HOSTNAME to be ``[commit]-[dyno]-[appname]``.
+  This requires [Heroku Labs runtime-dyno-metadata](https://devcenter.heroku.com/articles/dyno-metadata) to be enabled.
+
 ## 1.0.1 (2023-06-15)
 
 * Added ``TAILSCALE_BUILD_EXCLUDE_START_SCRIPT_FROM_PROFILE_D`` build environment variable

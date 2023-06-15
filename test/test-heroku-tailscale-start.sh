@@ -35,3 +35,14 @@ TAILSCALED_VERBOSE=1 \
   TAILSCALE_ADVERTISE_EXIT_NODE="true" \
   TAILSCALE_SHIELDS_UP="true" \
   run_test envs heroku-tailscale-start.sh
+
+TAILSCALED_VERBOSE=1 \
+  TAILSCALE_AUTH_KEY="ts-auth-test" \
+  HEROKU_APP_NAME="heroku-app" \
+  DYNO="web.1" \
+  HEROKU_SLUG_COMMIT="hunter20123456789"\
+  TAILSCALE_ACCEPT_DNS="false" \
+  TAILSCALE_ACCEPT_ROUTES="false" \
+  TAILSCALE_ADVERTISE_EXIT_NODE="true" \
+  TAILSCALE_SHIELDS_UP="true" \
+  run_test hostname heroku-tailscale-start.sh

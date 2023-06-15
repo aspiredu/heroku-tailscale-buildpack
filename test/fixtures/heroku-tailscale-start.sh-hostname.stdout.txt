@@ -1,9 +1,9 @@
 -----> Starting Tailscale
------> Using Tailscale hostname=test-host
+-----> Using Tailscale hostname=hunter20-web-1-heroku-app
 >>> mocked tailscaled -verbose 1 call <<<
 >>> mocked tailscale call
 --authkey=ts-auth-test
---hostname=test-host
+--hostname=test
 --accept-dns=false
 --accept-routes=false
 --advertise-exit-node=true

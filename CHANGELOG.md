@@ -4,6 +4,7 @@
 
 * Added ``TAILSCALE_BUILD_EXCLUDE_START_SCRIPT_FROM_PROFILE_D`` build environment variable
   to control when the tailscale script starts.
+* Messed up the release. Need to touch the changelog.
 
 ## 1.0.1 (2023-06-13)
 

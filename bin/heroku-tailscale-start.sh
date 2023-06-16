@@ -21,9 +21,11 @@ else
       tailscale_hostname=$(hostname)
     else
       # Only use the first 8 characters of the commit sha.
-      # Swap the . in the dyno with a - since tailscale doesn't
+      # Swap the . and _ in the dyno with a - since tailscale doesn't
       # allow for periods.
-      tailscale_hostname=${HEROKU_SLUG_COMMIT:0:8}"-"${DYNO//./-}"-$HEROKU_APP_NAME"
+      DYNO=${DYNO//./-}
+      DYNO=${DYNO//_/-}
+      tailscale_hostname=${HEROKU_SLUG_COMMIT:0:8}"-$DYNO-$HEROKU_APP_NAME"
     fi
   else
     tailscale_hostname="$TAILSCALE_HOSTNAME"

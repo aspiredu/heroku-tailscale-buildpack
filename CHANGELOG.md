@@ -1,5 +1,8 @@
 ## Unreleased
 
+* Swap the ``_`` character for ``-`` in the hostname for 
+  the DYNO environment variable.
+
 ## 1.1.0 (2023-06-15)
 
 * Updated the default TAILSCALE_HOSTNAME to be ``[commit]-[dyno]-[appname]``.

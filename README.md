@@ -192,6 +192,44 @@ git push heroku
 ```
 8. You're now running your application connecting to your resources via Tailscale.
 
+## Limit access to web app to Tailscale users
+
+It is possible to serve your web application on Heroku to only users in your tailnet,
+but that is outside the scope of this particular buildpack.
+
+That said, this buildpack makes it possible to do so. We solved this by 
+creating a separate dyno in the ``Procfile`` called `admin_web` which runs a script
+that does the following:
+
+1. Attempt to restore certificate files from cache.
+2. Revoke previous machine with the desired hostname.
+3. Update current tailscale process to use the desired hostname.
+4. Validate and potentially re-issue certificates for hostname.
+5. Store certificate files in cache.
+6. Serve localhost process on Tailnet for the hostname.
+7. Start web process to serve requests on localhost.
+
+The certificates need to be persisted beyond instances of the dyno to avoid requesting
+certificates for the same full DNS path from Let's Encrypt. Let's Encrypt will limit
+you to 5 requests per week.
+
+The certificate files you'll need to persist are:
+
+- ``.local/share/tailscale/certs/$TAILSCALE_HOSTNAME.crt``
+- ``.local/share/tailscale/certs/$TAILSCALE_HOSTNAME.key``
+
+To serve your application your ``admin_web`` script should do something similar to:
+
+```shell
+# Expose the local 8000 port to the tailnet.
+# The URL will be https://<machine-name>.<tailnet>.ts.net
+tailscale serve https / http://127.0.0.1:8000
+# Generate the current serve status so the logs include the URL.
+tailscale serve status
+# Start the web server process
+exec proxychains4 -f vendor/proxychains-ng/conf/proxychains.conf uvicorn --host 127.0.0.1 --port "8000" project.asgi:application
+```
+
 [^1]: You want reusable auth keys here because it will be used across all of your dynos
       in the application.
 

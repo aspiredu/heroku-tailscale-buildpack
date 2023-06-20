@@ -1,5 +1,8 @@
 ## Unreleased
 
+* Update README to include mention of serving application to only users in your
+  Tailnet.
+
 ## 1.1.1 (2023-06-15)
 
 * Swap the ``_`` character for ``-`` in the hostname for 

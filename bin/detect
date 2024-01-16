@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 # bin/detect <build-dir>
 
-echo 'tailscale'
+echo 'Tailscale'
 exit 0

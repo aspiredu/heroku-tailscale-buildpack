@@ -45,6 +45,5 @@ else
     sleep 5
   done
 
-  export ALL_PROXY=socks5://localhost:1055/
   log "Tailscale started"
 fi

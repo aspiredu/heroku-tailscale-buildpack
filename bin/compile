@@ -17,10 +17,6 @@ set -euo pipefail
 # clean up leaking environment
 unset GIT_DIR
 
-function log() {
-    echo "-----> $*"
-}
-
 function indent() {
     sed -e 's/^/       /'
 }
@@ -31,93 +27,34 @@ CACHE_DIR=$2
 ENV_DIR=$3
 BUILDPACK_DIR="$(dirname "$(dirname "$0")")"
 
-PC_BASE_DIR=$CACHE_DIR/proxychains-ng
-PC_SOURCE_DIR=$CACHE_DIR/proxychains-ng/source
-mkdir -p $PC_SOURCE_DIR
+### Load Dependencies
+source "$BUILDPACK_DIR/lib/environment.sh"
 
-BUILDPACK_VARIABLES="TAILSCALE_BUILD_TS_VERSION TAILSCALE_BUILD_TS_TARGETARCH"
+BUILDPACK_VARIABLES="TAILSCALE_VERSION"
 
 shopt -s nullglob
 
-# Load any tailscale build environment variables for the application
-# into the actual environment variables.
-for env_file in $BUILDPACK_VARIABLES ; do
-    [ -f "$ENV_DIR/$env_file" ] && export "$(basename "$env_file")=$(cat "$ENV_DIR/$env_file" 2>/dev/null)"
-done
+export_env_dir "$ENV_DIR"
 
-if [ -z "${TAILSCALE_BUILD_TS_TARGETARCH:-}" ] ; then
-  export TAILSCALE_BUILD_TS_TARGETARCH=amd64
-  log "No Tailscale architecture specified in TAILSCALE_BUILD_TS_TARGETARCH config var. Defaulting to $TAILSCALE_BUILD_TS_TARGETARCH."
-else
-  log "Using Tailscale architecture from TAILSCALE_BUILD_TS_TARGETARCH config var: $TAILSCALE_BUILD_TS_TARGETARCH"
-fi
+: ${TAILSCALE_VERSION:=1.56.1} && echo "-----> Using Tailscale version: $TAILSCALE_VERSION"
 
-if [ -z "${TAILSCALE_BUILD_TS_VERSION:-}" ] ; then
-  export TAILSCALE_BUILD_TS_VERSION=1.42.0
-  log "No Tailscale version specified in TAILSCALE_BUILD_TS_VERSION config var. Defaulting to $TAILSCALE_BUILD_TS_VERSION."
-else
-  log "Using Tailscale version from TAILSCALE_BUILD_TS_VERSION config var: $TAILSCALE_BUILD_TS_VERSION"
-fi
+mkdir -p "$BUILD_DIR/.heroku/tailscale/bin"
+export PATH="$BUILD_DIR/.heroku/tailscale/bin:$PATH"
 
-if [ -z "${TAILSCALE_BUILD_PROXYCHAINS_REPO:-}" ] ; then
-  export TAILSCALE_BUILD_PROXYCHAINS_REPO="https://github.com/rofl0r/proxychains-ng.git"
-  log "No ProxyChains repo specified in TAILSCALE_BUILD_PROXYCHAINS_REPO config var. Defaulting to $TAILSCALE_BUILD_PROXYCHAINS_REPO."
-else
-  log "Using ProxyChains repo from TAILSCALE_BUILD_PROXYCHAINS_REPO config var: $TAILSCALE_BUILD_PROXYCHAINS_REPO"
-fi
+echo "-----> Downloading Tailscale"
+curl -sL "https://pkgs.tailscale.com/stable/tailscale_${TAILSCALE_VERSION}_amd64.tgz" \
+  | tar -zxf - -C "${BUILD_DIR}/.heroku/tailscale/bin" --strip=1 tailscale_${TAILSCALE_VERSION}_amd64/tailscaled tailscale_${TAILSCALE_VERSION}_amd64/tailscale
 
+chmod +x "$BUILD_DIR/.heroku/tailscale/bin/tailscale"
+chmod +x "$BUILD_DIR/.heroku/tailscale/bin/tailscaled"
 
-log "Install Tailscale"
-log "Add Tailscale to the PATH"
-mkdir -p "$BUILD_DIR/vendor/tailscale"
-export PATH="$BUILD_DIR/vendor/tailscale:$PATH"
+cp "$BUILDPACK_DIR/bin/heroku-tailscale-start.sh" "$BUILD_DIR/.heroku/tailscale/bin/heroku-tailscale-start.sh"
+cp "$BUILDPACK_DIR/bin/heroku-tailscale-test.sh" "$BUILD_DIR/.heroku/tailscale/bin/heroku-tailscale-test.sh"
 
-log "Fetch Tailscale"
-curl -sL "https://pkgs.tailscale.com/stable/tailscale_${TAILSCALE_BUILD_TS_VERSION}_${TAILSCALE_BUILD_TS_TARGETARCH}.tgz" \
-  | tar -zxf - -C "${BUILD_DIR}/vendor/tailscale" --strip=1 tailscale_${TAILSCALE_BUILD_TS_VERSION}_${TAILSCALE_BUILD_TS_TARGETARCH}/tailscaled tailscale_${TAILSCALE_BUILD_TS_VERSION}_${TAILSCALE_BUILD_TS_TARGETARCH}/tailscale
-# Mark the scripts as executable.
-chmod +x "$BUILD_DIR/vendor/tailscale/tailscale"
-chmod +x "$BUILD_DIR/vendor/tailscale/tailscaled"
-cp "$BUILDPACK_DIR/bin/heroku-tailscale-start.sh" "$BUILD_DIR/vendor/tailscale/heroku-tailscale-start.sh"
-cp "$BUILDPACK_DIR/bin/heroku-tailscale-test.sh" "$BUILD_DIR/vendor/tailscale/heroku-tailscale-test.sh"
-chmod +x "$BUILD_DIR/vendor/tailscale/heroku-tailscale-start.sh"
-chmod +x "$BUILD_DIR/vendor/tailscale/heroku-tailscale-test.sh"
+chmod +x "$BUILD_DIR/.heroku/tailscale/bin/heroku-tailscale-start.sh"
+chmod +x "$BUILD_DIR/.heroku/tailscale/bin/heroku-tailscale-test.sh"
 
 mkdir -p $BUILD_DIR/.profile.d 2>&1 | indent
 rm -f $BUILD_DIR/.profile.d/heroku-tailscale-buildpack.sh 2>&1 | indent
-echo 'export PATH="/app/vendor/tailscale:$PATH"' >> $BUILD_DIR/.profile.d/heroku-tailscale-buildpack.sh 2>&1 | indent
-
-log "Install ProxyChains-ng"
-
-log "Clone ProxyChains repo"
-rm -r $PC_SOURCE_DIR
-git clone $TAILSCALE_BUILD_PROXYCHAINS_REPO $PC_SOURCE_DIR 2>&1 | indent
-
-pushd $PC_SOURCE_DIR > /dev/null
-PC_VERSION_TAG=$(git describe --tags| cut -d- -f1)
-CACHED_BUILD_DIR=$PC_BASE_DIR/proxychains-ng-$PC_VERSION_TAG
-
-if [[ ! -d $CACHED_BUILD_DIR ]]; then
-  log "Building ProxyChains $PC_VERSION_TAG"
-  make clean 2>&1 | indent
-  git checkout $PC_VERSION_TAG 2>&1 | indent
-  ./configure --prefix=/app/vendor/proxychains-ng 2>&1 | indent
-  make 2>&1 | indent
-  DESTDIR=$CACHED_BUILD_DIR make install 2>&1 | indent
-fi
-popd > /dev/null
-
-log "Installing ProxyChains into the slug"
-mkdir -p "$BUILD_DIR/vendor/proxychains-ng"
-cp -r "$BUILDPACK_DIR/conf" "$BUILD_DIR/vendor/proxychains-ng/conf"
-echo 'export PATH="/app/vendor/proxychains-ng/bin:$PATH"' >> $BUILD_DIR/.profile.d/heroku-tailscale-buildpack.sh 2>&1 | indent
-echo 'export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/app/vendor/proxychains-ng/lib";' >> $BUILD_DIR/.profile.d/heroku-tailscale-buildpack.sh 2>&1 | indent
-
-if [[ "${TAILSCALE_BUILD_EXCLUDE_START_SCRIPT_FROM_PROFILE_D:-}" != "True" ]]; then
-  # Add the line to start tailscale to the end of the file
-  echo "/app/vendor/tailscale/heroku-tailscale-start.sh" >> $BUILD_DIR/.profile.d/heroku-tailscale-buildpack.sh 2>&1 | indent
-fi
-
-pushd $CACHED_BUILD_DIR/app > /dev/null
-cp -rv ./ $BUILD_DIR 2>&1 | indent
-popd > /dev/null
+echo 'export PATH="/app/.heroku/tailscale/bin:$PATH"' >> $BUILD_DIR/.profile.d/heroku-buildpack-tailscale.sh 2>&1 | indent
+echo "/app/.heroku/tailscale/bin/heroku-tailscale-start.sh" >> $BUILD_DIR/.profile.d/heroku-buildpack-tailscale.sh 2>&1 | indent
